@@ -6,6 +6,7 @@ import ee
 BASIN_ASSET_ID = "projects/ee-officialsatbir23/assets/Rhone-20250531T062224Z-1-001"
 YEARS = [2021, 2022]
 SCALE = 10  # in meters
+PIXEL_AREA_M2 = 100  # For 10m resolution, each pixel = 100 m²
 MAX_PIXELS = 2_000_000_000
 OUTPUT_PATH = os.path.join("..", "outputs", "coverage_results.csv")
 
@@ -15,19 +16,19 @@ ee.Initialize(project="ee-officialsatbir23")
 
 def compute_covered_area(img: ee.Image, geom: ee.Geometry, scale: int) -> ee.Number:
     """
-    Calculates area (in hectares) where the input image is valid (non-masked).
-    Uses .mask() * pixelArea(), and divides result by 10,000 to convert to hectares.
+    Fast approximation of covered area in hectares using valid pixel count.
+    Each valid pixel is assumed to be 100 m² (for 10m resolution).
     """
-    pixel_area_img = img.mask().multiply(ee.Image.pixelArea())
-    area_ha = pixel_area_img.reduceRegion(
-        reducer=ee.Reducer.sum(),
+    valid_pixel_mask = img.mask().gt(0)
+    pixel_count = valid_pixel_mask.reduceRegion(
+        reducer=ee.Reducer.count(),
         geometry=geom,
         scale=scale,
         maxPixels=MAX_PIXELS,
         tileScale=4
     ).values().get(0)
-    
-    return ee.Number(area_ha).divide(10_000)  # Convert m² to hectares
+
+    return ee.Number(pixel_count).multiply(PIXEL_AREA_M2).divide(10_000)  # m² to hectares
 
 
 def quantify_dw_coverage(basin_asset_id: str, years: list[int]) -> list[dict]:
@@ -43,7 +44,6 @@ def quantify_dw_coverage(basin_asset_id: str, years: list[int]) -> list[dict]:
         year_end = year_start.advance(1, 'year')
         year_img = dw_col.filterDate(year_start, year_end).mosaic().clip(basin)
 
-        # Yearly area
         year_area_ha = compute_covered_area(year_img, basin, SCALE).getInfo()
         rows.append({
             "Period": f"{year}_total",
@@ -51,7 +51,6 @@ def quantify_dw_coverage(basin_asset_id: str, years: list[int]) -> list[dict]:
             "Coverage_percent": round(100 * year_area_ha / total_area_ha, 2)
         })
 
-        # Monthly areas
         for m in range(1, 13):
             start = ee.Date(f"{year}-{m:02d}-01")
             end = start.advance(1, 'month')
