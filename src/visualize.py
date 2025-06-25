@@ -2,10 +2,10 @@ import ee
 
 ee.Initialize(project="ee-officialsatbir23")
 
-roi = ee.FeatureCollection("projects/ee-officialsatbir23/assets/rio_dagua").geometry()
+roi = ee.FeatureCollection("projects/ee-officialsatbir23/assets/Rhone-20250531T062224Z-1-001").geometry()
 
 start_date = '2021-01-01'
-end_date = '2022-01-01'
+end_date = '2021-02-01'
 
 # Dynamic World: Use mosaic to get best land cover coverage
 dw = (
