@@ -15,3 +15,18 @@ dist/
 # VS Code files
 .vscode/
 dynamic/
+
+notebooks/China_basins_summary_2021.csv/
+notebooks/france_basins_summary_2021.csv/
+notebooks/hybas_ids.txt/
+notebooks/Indian_basins_summary_2021.csv/
+
+notebooks/merged_hydrobasins_China.geojson/
+notebooks/merged_hydrobasins_france.geojson/
+notebooks/merged_hydrobasins_India.geojson/
+outputs/coverage_results.csv/
+data_china_all_2021/
+data_france_all_2021/
+data_India_all_2021/
+hybas_as_lev05_v1c/
+hybas_eu_lev05_v1c/

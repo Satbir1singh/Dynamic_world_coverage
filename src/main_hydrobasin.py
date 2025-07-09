@@ -1,7 +1,7 @@
 import ee
 
 # Constants
-FRANCE_ASSET = "projects/ee-officialsatbir23/assets/france"
+FRANCE_ASSET = "projects/ee-officialsatbir23/assets/India_1"
 YEARS = list(range(2021, 2022)) 
 SCALE = 10
 PIXEL_AREA_M2 = 100
@@ -11,6 +11,14 @@ ee.Initialize(project="ee-officialsatbir23")
 
 def compute_coverage_area(count_img: ee.Image, geom: ee.Geometry, scale: int) -> ee.Number:
     """Compute area of covered pixels using count thresholding"""
+
+    # count_img = ee.Image(
+    #     ee.Algorithms.If(
+    #         count_img.bandNames().size().gt(0),
+    #         count_img,
+    #         ee.Image.constant(0).rename('coverage')
+    #     )
+    # )
     result = count_img.gt(0).reduceRegion(
         reducer=ee.Reducer.sum(),
         geometry=geom,
@@ -84,16 +92,15 @@ def start_export(basin):
     # Create export task with Python strings for description and filename
     task = ee.batch.Export.table.toDrive(
         collection=basin_results,
-        description=f'DW_coverage_HYBAS_{hybas_id}',  # Use f-string
+        description=f'DW_coverage_HYBAS_{hybas_id}',  
         fileFormat='CSV',
         folder='DynamicWorldExports_france_all',
-        fileNamePrefix=f'coverage_HYBAS_{hybas_id}'   # Use f-string
+        fileNamePrefix=f'coverage_HYBAS_{hybas_id}'   
     )
     
     return task
 
 if __name__ == "__main__":
-    # Load and filter HydroBASINS level 8
     hydrobasins = ee.FeatureCollection("WWF/HydroSHEDS/v1/Basins/hybas_5")
     france_geom = ee.FeatureCollection(FRANCE_ASSET).geometry()
     fr_basins = hydrobasins.filterBounds(france_geom)
